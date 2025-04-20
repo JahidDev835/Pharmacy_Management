@@ -1,0 +1,228 @@
+import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+class Medicine {
+    private String name;
+    private String category;
+    private double price;
+    private int quantity;
+
+    public Medicine(String name, String category, double price, int quantity) {
+        this.name = name;
+        this.category = category;
+        this.price = price;
+        this.quantity = quantity;
+    }
+
+    public String getName() { return name; }
+    public String getCategory() { return category; }
+    public double getPrice() { return price; }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+
+    public void displayMedicineDetails() {
+        System.out.println("╔══════════════════════════════╗");
+        System.out.printf("║ %-26s ║\n", "Medicine Details");
+        System.out.println("╠══════════════════════════════╣");
+        System.out.printf("║ %-12s: %-12s ║\n", "Name", name);
+        System.out.printf("║ %-12s: %-12s ║\n", "Category", category);
+        System.out.printf("║ %-12s: $%-11.2f ║\n", "Price", price);
+        System.out.printf("║ %-12s: %-12d ║\n", "Quantity", quantity);
+        System.out.println("╚══════════════════════════════╝");
+    }
+}
+
+class PrescriptionMedicine extends Medicine {
+    private String prescriptionRequired;
+
+    public PrescriptionMedicine(String name, String category, double price, 
+                              int quantity, String prescriptionRequired) {
+        super(name, category, price, quantity);
+        this.prescriptionRequired = prescriptionRequired;
+    }
+
+    @Override
+    public void displayMedicineDetails() {
+        super.displayMedicineDetails();
+        System.out.println("╔══════════════════════════════╗");
+        System.out.printf("║ %-12s: %-12s ║\n", "Prescription", prescriptionRequired);
+        System.out.println("╚══════════════════════════════╝");
+    }
+}
+
+class Pharmacy {
+    private ArrayList<Medicine> medicineList;
+
+    public Pharmacy() {
+        medicineList = new ArrayList<>();
+    }
+
+    public void addMedicine(Medicine medicine) {
+        medicineList.add(medicine);
+        System.out.println("\n✓ Medicine added successfully!");
+        medicine.displayMedicineDetails();
+    }
+
+    public void displayAllMedicines() {
+        if (medicineList.isEmpty()) {
+            System.out.println("\n╔══════════════════════════════╗");
+            System.out.println("║     No medicines available    ║");
+            System.out.println("╚══════════════════════════════╝");
+        } else {
+            System.out.println("\n╔══════════════════════════════════════════════════╗");
+            System.out.println("║                 AVAILABLE MEDICINES               ║");
+            System.out.println("╠══════════════════════════════════════════════════╣");
+            for (Medicine medicine : medicineList) {
+                medicine.displayMedicineDetails();
+                System.out.println("╠══════════════════════════════════════════════════╣");
+            }
+            System.out.println("╚══════════════════════════════════════════════════╝");
+        }
+    }
+
+    public Medicine searchMedicine(String name) {
+        for (Medicine medicine : medicineList) {
+            if (medicine.getName().equalsIgnoreCase(name)) {
+                return medicine;
+            }
+        }
+        return null;
+    }
+
+    public void sellMedicine(String name, int quantity) {
+        Medicine medicine = searchMedicine(name);
+        if (medicine == null) {
+            System.out.println("\n╔══════════════════════════════╗");
+            System.out.println("║      Medicine not found!     ║");
+            System.out.println("╚══════════════════════════════╝");
+            return;
+        }
+        if (medicine.getQuantity() < quantity) {
+            System.out.println("\n╔══════════════════════════════╗");
+            System.out.println("║      Insufficient stock!     ║");
+            System.out.println("╚══════════════════════════════╝");
+            return;
+        }
+        medicine.setQuantity(medicine.getQuantity() - quantity);
+        System.out.println("\n╔══════════════════════════════╗");
+        System.out.printf("║ ✓ Sold %3d of %-15s ║\n", quantity, name);
+        System.out.println("╚══════════════════════════════╝");
+    }
+}
+
+public class Main {
+    private static void displayMenu() {
+        System.out.println("\n╔══════════════════════════════╗");
+        System.out.println("║   PHARMACY MANAGEMENT SYSTEM ║");
+        System.out.println("╠══════════════════════════════╣");
+        System.out.println("║ 1. View all medicines        ║");
+        System.out.println("║ 2. Search medicine           ║");
+        System.out.println("║ 3. Sell medicine             ║");
+        System.out.println("║ 4. Add new medicine          ║");
+        System.out.println("║ 5. Exit                      ║");
+        System.out.println("╚══════════════════════════════╝");
+        System.out.print("⌲ Select option (1-5): ");
+    }
+
+    private static Medicine createMedicine(Scanner scanner) {
+        System.out.println("\n╔══════════════════════════════╗");
+        System.out.println("║      ADD NEW MEDICINE        ║");
+        System.out.println("╚══════════════════════════════╝");
+        
+        System.out.print("⌲ Enter medicine name: ");
+        String name = scanner.nextLine();
+        
+        System.out.print("⌲ Enter category: ");
+        String category = scanner.nextLine();
+        
+        double price = getValidDouble(scanner, "⌲ Enter price: $");
+        int quantity = getValidInt(scanner, "⌲ Enter quantity: ");
+        
+        System.out.print("⌲ Is prescription required? (yes/no): ");
+        String prescription = scanner.nextLine().toLowerCase();
+        
+        return prescription.equals("yes") 
+            ? new PrescriptionMedicine(name, category, price, quantity, "Yes")
+            : new Medicine(name, category, price, quantity);
+    }
+
+    private static double getValidDouble(Scanner scanner, String prompt) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                double value = scanner.nextDouble();
+                scanner.nextLine();
+                if (value <= 0) throw new IllegalArgumentException();
+                return value;
+            } catch (Exception e) {
+                System.out.println("Invalid input! Please enter a positive number.");
+                scanner.nextLine();
+            }
+        }
+    }
+
+    private static int getValidInt(Scanner scanner, String prompt) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                int value = scanner.nextInt();
+                scanner.nextLine();
+                if (value < 0) throw new IllegalArgumentException();
+                return value;
+            } catch (Exception e) {
+                System.out.println("Invalid input! Please enter a non-negative number.");
+                scanner.nextLine();
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Pharmacy pharmacy = new Pharmacy();
+        Scanner scanner = new Scanner(System.in);
+
+        pharmacy.addMedicine(new Medicine("Paracetamol", "Painkiller", 5.99, 100));
+        pharmacy.addMedicine(new PrescriptionMedicine("Amoxicillin", "Antibiotic", 12.50, 50, "Yes"));
+
+        while (true) {
+            displayMenu();
+            
+            try {
+                int choice = scanner.nextInt();
+                scanner.nextLine();
+
+                switch (choice) {
+                    case 1:
+                        pharmacy.displayAllMedicines();
+                        break;
+                    case 2:
+                        System.out.print("\n⌲ Enter medicine name to search: ");
+                        Medicine med = pharmacy.searchMedicine(scanner.nextLine());
+                        if (med != null) med.displayMedicineDetails();
+                        else System.out.println("\n⚠ Medicine not found!");
+                        break;
+                    case 3:
+                        System.out.print("\n⌲ Enter medicine name to sell: ");
+                        String name = scanner.nextLine();
+                        int qty = getValidInt(scanner, "⌲ Enter quantity: ");
+                        pharmacy.sellMedicine(name, qty);
+                        break;
+                    case 4:
+                        pharmacy.addMedicine(createMedicine(scanner));
+                        break;
+                    case 5:
+                        System.out.println("\n╔══════════════════════════════╗");
+                        System.out.println("║   Thank you for using our    ║");
+                        System.out.println("║    Pharmacy System! Goodbye! ║");
+                        System.out.println("╚══════════════════════════════╝");
+                        return;
+                    default:
+                        System.out.println("\n⚠ Invalid choice! Please select 1-5.");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("\n⚠ Invalid input! Please enter a number (1-5).");
+                scanner.nextLine();
+            }
+        }
+    }
+}
